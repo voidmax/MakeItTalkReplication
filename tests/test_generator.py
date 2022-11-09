@@ -1,4 +1,7 @@
 import pytest
+import librosa
+import torch
+from skimage import io
 
 
 def check_shape(tensor, constants, names):
@@ -141,6 +144,17 @@ def run_landmarks_predictor(input, constants):
     return output
 
 
+def load_test():
+    image = torch.Tensor(io.imread("example_image.jpg"))
+    audio = torch.Tensor(librosa.load("example_audio.wav")[1])
+    
+    batch_size = 4
+    image_batch = torch.stack([image] * batch_size)
+    audio_batch = torch.stack([audio] * batch_size)
+    
+    return image_batch, audio_batch
+
+
 def test_generator():
     constants = dict()
 
@@ -154,10 +168,10 @@ def test_generator():
     )
 
     lambmarks = run_facial_landmarks_extractor(image_batch, constants)
-    landmarks_content_diff = run_MLP_speech_content((features_context, lambmarks), constants)
+    landmarks_content_diff = run_MLP_speech_content((features_content, lambmarks), constants)
     landmarks_speaker_aware_diff = run_MLP_speaker_aware((features_speaker_aware, lambmarks), constants)
 
     landmarks_prediction = run_landmarks_predictor(
-        (lambmarks, landmarks_context_diff, landmarks_speaker_aware_diff), constants
+        (lambmarks, landmarks_content_diff, landmarks_speaker_aware_diff), constants
     )
 
