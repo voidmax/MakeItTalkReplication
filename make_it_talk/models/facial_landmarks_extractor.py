@@ -3,8 +3,8 @@ import torch.nn as nn
 
 class FacialLandmarksExtractor(nn.Module):
     def __init__(self) -> None:
-        pass
+        super().__init__()
 
-    def forward(input):
+    def forward(self, input):
         return input
             

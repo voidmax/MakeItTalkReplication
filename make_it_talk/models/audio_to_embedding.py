@@ -1,4 +1,9 @@
-class AudioToEmbedding():
+import torch
+import torch.nn as nn
+
+class AudioToEmbedding(nn.Module):
     def __init__(self) -> None:
-        pass
+        super().__init__()
     
+    def forward(self, input):
+        return input
