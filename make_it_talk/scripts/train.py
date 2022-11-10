@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from MakeItScream.MakeItTalkReplication.make_it_talk import TalkingHeadPipeline
+from make_it_talk.models import TalkingHeadPipeline
 
 
 def train_content_landmarks_predictor(
