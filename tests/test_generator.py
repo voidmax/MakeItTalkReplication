@@ -5,7 +5,7 @@ from skimage import io
 
 
 def check_shape(tensor, constants, names):
-    assert tensor.shape == len(names), "Dimension mismatch"
+    assert len(tensor.shape) == len(names), "Dimension mismatch"
     for sz, n in zip(tensor.shape, names):
         if n == "???":
             continue
