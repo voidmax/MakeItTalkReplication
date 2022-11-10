@@ -145,8 +145,8 @@ def run_landmarks_predictor(input, constants):
 
 
 def load_test():
-    image = torch.Tensor(io.imread("example_image.jpg"))
-    audio = torch.Tensor(librosa.load("example_audio.wav")[1])
+    image = torch.Tensor(io.imread("examples/example_image.jpg"))
+    audio = torch.Tensor(librosa.load("examples/example_audio.wav")[1])
     
     batch_size = 4
     image_batch = torch.stack([image] * batch_size)
