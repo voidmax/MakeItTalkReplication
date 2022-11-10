@@ -31,6 +31,26 @@ def run_audio_to_embedding(input, constants):
     return output
 
 
+
+def test_audio_to_embedding():
+    from make_it_talk import AudioToEmbedding
+    model = AudioToEmbedding()
+
+    constants = dict()
+
+    _, audio_batch = load_test()
+
+    check_shape(audio_batch, constants, ["batch_size", "???"])
+
+    output = model(input)
+
+    assert len(output) == 2
+    check_shape(output[0], constants, ["batch_size", "frames", "audio_dim"])
+    check_shape(output[1], constants, ["batch_size", "speaker_dim"])
+    
+    return output
+
+
 def run_LSTM_speech_content(input, constants):
     from make_it_talk import LSTMSpeechContent
     model = LSTMSpeechContent()
@@ -89,9 +109,26 @@ def run_facial_landmarks_extractor(input, constants):
     from make_it_talk import FacialLandmarksExtractor
     model = FacialLandmarksExtractor()
 
-    check_shape(input, constants, ["batch_size", "???", "???"])
+    check_shape(input, constants, ["batch_size", "???", "???", "???"])
 
     output = model(input)
+
+    check_shape(output, constants, ["batch_size", "landmarks_dim"])
+
+    return output
+
+
+def test_facial_landmarks_extractor():
+    constants = dict()
+
+    from make_it_talk import FacialLandmarksExtractor
+    model = FacialLandmarksExtractor()
+    
+    image_batch, _ = load_test()
+
+    check_shape(image_batch, constants, ["batch_size", "???", "???", "???"])
+
+    output = model(image_batch)
 
     check_shape(output, constants, ["batch_size", "landmarks_dim"])
 
@@ -144,18 +181,31 @@ def run_landmarks_predictor(input, constants):
     return output
 
 
+def run_generator(input, constants):
+    from make_it_talk import Generator
+    model = Generator()
+
+    assert len(input) == 2
+    check_shape(input[0], constants, ["batch_size", "???", "???", "???"])
+    check_shape(input[1], constants, ["batch_size", "???"])
+
+    output = model(input)
+
+    check_shape(output, constants, ["batch_size", "???"])
+    
+
 def load_test():
     image = torch.Tensor(io.imread("examples/example_image.jpg"))
     audio = torch.Tensor(librosa.load("examples/example_audio.wav")[1])
     
-    batch_size = 4
+    batch_size = 2
     image_batch = torch.stack([image] * batch_size)
     audio_batch = torch.stack([audio] * batch_size)
     
     return image_batch, audio_batch
 
 
-def test_generator():
+def test_generator_parts():
     constants = dict()
 
     image_batch, audio_batch = load_test()
@@ -174,4 +224,33 @@ def test_generator():
     landmarks_prediction = run_landmarks_predictor(
         (lambmarks, landmarks_content_diff, landmarks_speaker_aware_diff), constants
     )
+
+
+def test_generator_parts():
+    constants = dict()
+
+    image_batch, audio_batch = load_test()
+
+    audio_content, audio_speaker = run_audio_to_embedding(audio_batch, constants)
+    features_content = run_LSTM_speech_content(audio_content, constants)
+    audio_speaker_aware_embedding = run_LSTM_speaker_aware(audio_content, constants)
+    features_speaker_aware = run_self_attention_encoder(
+        (audio_speaker_aware_embedding, audio_speaker), constants
+    )
+
+    lambmarks = run_facial_landmarks_extractor(image_batch, constants)
+    landmarks_content_diff = run_MLP_speech_content((features_content, lambmarks), constants)
+    landmarks_speaker_aware_diff = run_MLP_speaker_aware((features_speaker_aware, lambmarks), constants)
+
+    landmarks_prediction = run_landmarks_predictor(
+        (lambmarks, landmarks_content_diff, landmarks_speaker_aware_diff), constants
+    )
+
+
+def test_generator():
+    constants = dict()
+
+    image_batch, audio_batch = load_test()
+
+    landmarks_prediction = run_generator((image_batch, audio_batch), constants)
 
