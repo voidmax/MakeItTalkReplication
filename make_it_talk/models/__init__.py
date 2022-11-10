@@ -7,3 +7,4 @@ from .generator import *
 from .MLP_speaker import *                
 from .landmarks_predictor import *
 from .MLP_speaker_embedding import *
+from .composite_models import *
