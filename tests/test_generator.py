@@ -35,9 +35,6 @@ def run_audio_to_embedding(input, constants):
 
 
 def test_audio_to_embedding():
-    _, audio1_batch, audio2_batch = load_test()
-
-    print(audio1_batch.shape, audio2_batch.shape)
     from make_it_talk import AudioToEmbedding
     model = AudioToEmbedding()
 
