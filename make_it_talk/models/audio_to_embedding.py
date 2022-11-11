@@ -54,7 +54,7 @@ class AudioToEmbedding(nn.Module):
 
     def get_speaker_embedding(self, lb_tensor):
         # wav = preprocess_wav(lb_tensor)
-        wav = lb_tensor
+        wav = lb_tensor.cpu().numpy()
         
         resemblyzer_encoder = VoiceEncoder(device=self.device)
         segment_len=960000
