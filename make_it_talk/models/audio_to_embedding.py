@@ -10,24 +10,28 @@ import shutil
 import soundfile as sf
 from math import ceil
 
-
 from make_it_talk.utils.audio_utils import match_target_amplitude, extract_f0_func_audiofile, quantize_f0_interp
 
+
 def parse_lb_tensor(filename):
-    return preprocess_wav(filename)
+    return torch.tensor(preprocess_wav(filename))
 
 def parse_sf_tensor(file_dir_path, filename):
     file_path = os.path.join(file_dir_path, filename)
     sound = AudioSegment.from_file(file_path, "wav")
 
-    audio_file = os.path.join(file_dir_path, 'tmp.wav')
+    audio_file_tmp1 = os.path.join(file_dir_path, 'tmp.wav')
+    audio_file_tmp2 = os.path.join(file_dir_path, 'tmp2.wav')
+
     normalized_sound = match_target_amplitude(sound, -20.0)
-    normalized_sound.export(audio_file, format='wav')
+    normalized_sound.export(audio_file_tmp1, format='wav')
 
-    sf_tens = sf.read(audio_file)
+    sf.write(audio_file_tmp2, sf.read(audio_file_tmp1)[0], 22050)
+    audio = torch.Tensor(sf.read(audio_file_tmp2)[0])
 
-    os.remove(audio_file)
-    return sf_tens
+    os.remove(audio_file_tmp1)
+    os.remove(audio_file_tmp2)
+    return audio
 
 class AudioToEmbedding(nn.Module):
     def __init__(self, root_dir='.') -> None:
@@ -42,10 +46,13 @@ class AudioToEmbedding(nn.Module):
     def forward(self, input):
         # assert self.speaker_embs is not None
         x_lb, x_sf = input
-        speaker = self.get_speaker_embedding(x_lb)
-        content = self.convert_single_wav_to_autovc_input(x_sf)
+        print(x_lb.shape)
+        print(x_lb[0].shape)
+        speaker = torch.stack([self.get_speaker_embedding(x) for x in x_lb])
+        content = torch.stack([self.convert_single_wav_to_autovc_input(x) for x in x_sf])
+        # content = self.convert_single_wav_to_autovc_input(x_sf)
 
-        return speaker, content
+        return content, speaker
 
     def load_autovc_weights(self, weights_path=None):
         if weights_path is None:
@@ -83,13 +90,11 @@ class AudioToEmbedding(nn.Module):
                 wav[segment_len * i:segment_len* (i + 1)], return_partials=True, rate=2)
             all_embeds.append(mean_embeds)
         all_embeds = np.array(all_embeds)
-        self.speaker_embs = np.mean(all_embeds, axis=0)
+        self.speaker_embs = torch.tensor(np.mean(all_embeds, axis=0))
 
         return self.speaker_embs
 
     def convert_single_wav_to_autovc_input(self, input):
-        print(len(input))
-        input_x, input_fs = input
 
         def pad_seq(x, base=32):
             len_out = int(base * ceil(float(x.shape[0]) / base))
@@ -99,16 +104,10 @@ class AudioToEmbedding(nn.Module):
 
         
         assert self.speaker_embs is not None
-        emb_trg = torch.from_numpy(self.speaker_embs[np.newaxis, :].astype('float32')).to(self.device)
+        emb_trg = (self.speaker_embs[np.newaxis, :]).to(self.device)
 
-        # audio_file = audio_filename
-        # sound = AudioSegment.from_file(audio_file, "wav")
-        # normalized_sound = match_target_amplitude(sound, -20.0)
-        # normalized_sound.export(audio_file, format='wav')
-
-        x_real_src, f0_norm = extract_f0_func_audiofile(input_x, input_fs, 'F')
+        x_real_src, f0_norm = extract_f0_func_audiofile(input, 22050, 'F')
         f0_org_src = quantize_f0_interp(f0_norm)
-
 
         ''' long split version '''
         l = x_real_src.shape[0]
@@ -121,7 +120,7 @@ class AudioToEmbedding(nn.Module):
             x_real, len_pad = pad_seq(x_real.astype('float32'))
             f0_org, _ = pad_seq(f0_org.astype('float32'))
             x_real = torch.from_numpy(x_real[np.newaxis, :].astype('float32')).to(self.device)
-            emb_org = torch.from_numpy(self.speaker_embs[np.newaxis, :].astype('float32')).to(self.device)
+            emb_org = self.speaker_embs[np.newaxis, :].to(self.device)
             # emb_trg = torch.from_numpy(emb[np.newaxis, :].astype('float32')).to(self.device)
             f0_org = torch.from_numpy(f0_org[np.newaxis, :].astype('float32')).to(self.device)
             print('source shape:', x_real.shape, emb_org.shape, emb_trg.shape, f0_org.shape)
@@ -134,9 +133,9 @@ class AudioToEmbedding(nn.Module):
         print('converted shape:', x_identic_psnt.shape, code_real.shape)
 
         if len_pad == 0:
-            uttr_trg = x_identic_psnt[0, :, :].cpu().numpy()
+            uttr_trg = x_identic_psnt[0, :, :].detach()
         else:
-            uttr_trg = x_identic_psnt[0, :-len_pad, :].cpu().numpy()
+            uttr_trg = x_identic_psnt[0, :-len_pad, :].detach()
 
         return uttr_trg
 
