@@ -42,10 +42,10 @@ def test_audio_to_embedding():
 
     _, audio1_batch, audio2_batch = load_test()
 
+    check_shape(audio1_batch, constants, ["batch_size", "???"])
+    check_shape(audio2_batch, constants, ["batch_size", "???"])
 
-    check_shape((audio1_batch, audio2_batch), ["batch_size", "???"])
-
-    output = model(input)
+    output = model((audio1_batch, audio2_batch))
 
     assert len(output) == 2
     check_shape(output[0], constants, ["batch_size", "frames", "audio_dim"])
