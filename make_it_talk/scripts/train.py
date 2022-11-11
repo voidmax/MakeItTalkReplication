@@ -2,45 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from make_it_talk.models import TalkingHeadPipeline
-
-
-def make_talking_head_pipeline(
-        audio_to_embedding,
-        lstm_speech_content,
-        lstm_speaker_aware,
-        mlp_speaker_embedding,
-        self_attention_encoder,
-        facial_landmarks_extractor,
-        mlp_speaker_aware,
-        mlp_speech_content,
-        discriminator,
-):
-    content_landmarks_predictor = ContentLandmarkDeltasPredictor(
-        lstm_speech_content,
-        mlp_speech_content,
-    )
-
-    generator = SpeakerAwareLandmarkDeltasPredictor(
-        lstm_speaker_aware=lstm_speaker_aware,
-        mlp_speaker_embedding=mlp_speaker_embedding,
-        self_attention_encoder=self_attention_encoder,
-        mlp_speaker_aware=mlp_speaker_aware,
-    )
-
-    return TalkingHeadPipeline(
-        audio_to_embedding,
-        facial_landmarks_extractor,
-        content_landmarks_predictor,
-        generator,
-        discriminator,
-    )
-
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
+from make_it_talk.models import *
 
 def train_pipeline(
         talking_head_pipeline,
