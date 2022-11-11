@@ -20,6 +20,12 @@ def main():
         python_requires='>=3.7',
         install_requires=[
             'torch>=1.11.0',
+            'resemblyzer',
+            'face_alignment',
+            'pysptk', 
+            'scikit-image',
+            'soundfile',
+            'librosa'
         ],
     )
 

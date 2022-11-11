@@ -34,14 +34,10 @@ class AudioToEmbedding(nn.Module):
         super().__init__()
         self.speaker_embs = None
         self.content_extracter = None
-        self.autovc_model_path = os.path.join(root_dir, 'checkpoints', 'audio', 'ckpt_autovc.pth')
+        self.root_dir = root_dir 
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.G = Generator(16, 256, 512, 16).eval().to(self.device)
-
-        print("path to model: ", self.autovc_model_path)
-        g_checkpoint = torch.load(self.autovc_model_path, map_location=self.device)
-        self.G.load_state_dict(g_checkpoint['model'])
 
     def forward(self, input):
         # assert self.speaker_embs is not None
@@ -51,6 +47,12 @@ class AudioToEmbedding(nn.Module):
 
         return speaker, content
 
+    def load_autovc_weights(self, weights_path=None):
+        if weights_path is None:
+            weights_path = os.path.join(self.root_dir, 'checkpoints', 'audio', 'ckpt_autovc.pth')
+
+        g_checkpoint = torch.load(weights_path, map_location=self.device)
+        self.G.load_state_dict(g_checkpoint['model'])
 
     def get_content_embedding(self, audio_dir_path):
         au_data = []

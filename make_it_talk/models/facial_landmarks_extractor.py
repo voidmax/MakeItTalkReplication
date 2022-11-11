@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import face_alignment
+import numpy as np
 
 class FacialLandmarksExtractor(nn.Module):
     def __init__(self) -> None:
@@ -9,7 +10,7 @@ class FacialLandmarksExtractor(nn.Module):
 
     def forward(self, input):
         return torch.stack([
-            torch.Tensor(self.model.get_landmarks(i)) for i in input
+            torch.Tensor(np.array(self.model.get_landmarks(i))) for i in input
         ]).view(input.shape[0], -1)
             
 class FacialLandmarksExtractorPlug(nn.Module):
