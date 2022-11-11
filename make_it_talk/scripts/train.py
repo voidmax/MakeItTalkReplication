@@ -5,6 +5,81 @@ import torch.nn.functional as F
 from make_it_talk.models import TalkingHeadPipeline
 
 
+def make_talking_head_pipeline(
+        audio_to_embedding,
+        lstm_speech_content,
+        lstm_speaker_aware,
+        mlp_speaker_embedding,
+        self_attention_encoder,
+        facial_landmarks_extractor,
+        mlp_speaker_aware,
+        mlp_speech_content,
+        discriminator,
+):
+    content_landmarks_predictor = ContentLandmarkDeltasPredictor(
+        lstm_speech_content,
+        mlp_speech_content,
+    )
+
+    generator = SpeakerAwareLandmarkDeltasPredictor(
+        lstm_speaker_aware=lstm_speaker_aware,
+        mlp_speaker_embedding=mlp_speaker_embedding,
+        self_attention_encoder=self_attention_encoder,
+        mlp_speaker_aware=mlp_speaker_aware,
+    )
+
+    return TalkingHeadPipeline(
+        audio_to_embedding,
+        facial_landmarks_extractor,
+        content_landmarks_predictor,
+        generator,
+        discriminator,
+    )
+
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+def train_pipeline(
+        talking_head_pipeline,
+        generator_optimizer,
+        discriminator_optimizer,
+        train_dataloader,
+        device,
+        generator_loss_function,
+        discriminator_loss_function,
+        metrics_list,
+        training_log=None,
+):
+    if training_log is None:
+        training_log = []
+
+    talking_head_pipeline = talking_head_pipeline.to(device)
+    talking_head_pipeline.train()
+
+    for i, batch in enumerate(train_dataloader):
+
+        training_generator_now = i % 2
+
+        # TODO: find out the format of the batch and change accordingly
+        # whatever is returned should already be torch.Tensors to put to device
+        audios, pictures, true_videos = batch
+
+        audios = audios.to(device)
+        pictures = pictures.to(device)
+        true_videos = true_videos.to(device)
+
+        predicted_landmarks, discriminator_input = talking_head_pipeline.personal_landmarks_predictor(audios, pictures)
+
+        if training_generator_now:
+            loss = generator_loss_function
+        predicted_landmarks, personal_processed, speaker_processed = discriminator_input
+
+        true_landmarks = talking_head_pipeline.facial_landmarks_extractor(true_videos)
+
+
 def train_content_landmarks_predictor(
         talking_head_pipeline: TalkingHeadPipeline,
         optimizer,
@@ -22,7 +97,7 @@ def train_content_landmarks_predictor(
 
     talking_head_pipeline.audio_to_embedding.requires_grad = False
     talking_head_pipeline.facial_landmarks_extractor.requires_grad = False
-    talking_head_pipeline.generator.requires_grad = False
+    talking_head_pipeline.personal_landmarks_predictor.requires_grad = False
     talking_head_pipeline.discriminator.requires_grad = False
 
     talking_head_pipeline.content_landmarks_predictor.requires_grad = True
@@ -61,6 +136,8 @@ def train_content_landmarks_predictor(
 
         training_log.append(results)
 
+    return training_log
+
 
 def train_pipeline(
         talking_head_pipeline,
@@ -83,8 +160,6 @@ def train_pipeline(
 
         training_generator_now = i % 2
 
-        # TODO: find out the format of the batch and change accordingly
-        # whatever is returned should already be torch.Tensors to put to device
         audios, pictures, true_videos = batch
 
         audios = audios.to(device)
