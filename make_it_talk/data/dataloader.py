@@ -4,7 +4,7 @@ from resemblyzer import preprocess_wav, VoiceEncoder
 from pydub import AudioSegment
 import soundfile as sf
 import numpy as np
-from skimage import io
+from skimage import io, transform
 import librosa
 import glob
 import cv2
@@ -12,7 +12,9 @@ import cv2
 from make_it_talk.utils.audio_utils import match_target_amplitude
 
 def parse_img_tensor(filepath):
-    return torch.tensor(io.imread(filepath))
+    img = io.imread(filepath)
+    img_resized = transform.resize(img, (256, 256))
+    return torch.tensor(img_resized)
 
 def parse_lb_tensor(filepath):
     return torch.tensor(preprocess_wav(filepath))
