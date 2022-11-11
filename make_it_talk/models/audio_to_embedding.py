@@ -342,13 +342,12 @@ class Generator(nn.Module):
 
 ### PLUG FOR TESTING ###
 class AudioToEmbeddingPlug(nn.Module):
-    def __init__(self, audio_dim):
+    def __init__(self, audio_dim, out_hs, out_speaker_hs):
         super(AudioToEmbeddingPlug, self).__init__()
-        self.hidden_size = 100
-        self.speaker_size = 101
-        self.linear = nn.Linear(audio_dim, self.hidden_size)
-        self.speaker_linear = nn.Linear(audio_dim, self.speaker_size)
+        self.linear = nn.Linear(audio_dim, out_hs)
+        self.speaker_linear = nn.Linear(audio_dim, out_speaker_hs)
 
     def forward(self, input):
         x = self.linear(input)
         return x, self.speaker_linear(input).sum(1)
+    
