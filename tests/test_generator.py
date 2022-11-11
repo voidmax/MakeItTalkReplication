@@ -201,7 +201,8 @@ def run_generator(input, constants):
 def load_test():
     image = torch.Tensor(io.imread("examples/example_image.jpg"))
     audio1 = torch.Tensor(librosa.load("examples/example_audio.wav")[1])
-    audio2 = torch.Tensor(soundfile.read("examples/example_audio.wav")[0])
+    soundfile.write("tmp.wav", soundfile.read("examples/example_audio.wav")[0], 22050)
+    audio2 = torch.Tensor(soundfile.read("tmp.wav")[0])
     
     batch_size = 2
     image_batch = torch.stack([image] * batch_size)
