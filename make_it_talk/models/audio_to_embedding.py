@@ -12,27 +12,6 @@ from math import ceil
 
 from make_it_talk.utils.audio_utils import match_target_amplitude, extract_f0_func_audiofile, quantize_f0_interp
 
-
-def parse_lb_tensor(filename):
-    return torch.tensor(preprocess_wav(filename))
-
-def parse_sf_tensor(file_dir_path, filename):
-    file_path = os.path.join(file_dir_path, filename)
-    sound = AudioSegment.from_file(file_path, "wav")
-
-    audio_file_tmp1 = os.path.join(file_dir_path, 'tmp.wav')
-    audio_file_tmp2 = os.path.join(file_dir_path, 'tmp2.wav')
-
-    normalized_sound = match_target_amplitude(sound, -20.0)
-    normalized_sound.export(audio_file_tmp1, format='wav')
-
-    sf.write(audio_file_tmp2, sf.read(audio_file_tmp1)[0], 22050)
-    audio = torch.Tensor(sf.read(audio_file_tmp2)[0])
-
-    os.remove(audio_file_tmp1)
-    os.remove(audio_file_tmp2)
-    return audio
-
 class AudioToEmbedding(nn.Module):
     def __init__(self, root_dir='.') -> None:
         super().__init__()
@@ -44,13 +23,10 @@ class AudioToEmbedding(nn.Module):
         self.G = Generator(16, 256, 512, 16).eval().to(self.device)
 
     def forward(self, input):
-        # assert self.speaker_embs is not None
         x_lb, x_sf = input
-        print(x_lb.shape)
-        print(x_lb[0].shape)
+        
         speaker = torch.stack([self.get_speaker_embedding(x) for x in x_lb])
         content = torch.stack([self.convert_single_wav_to_autovc_input(x) for x in x_sf])
-        # content = self.convert_single_wav_to_autovc_input(x_sf)
 
         return content, speaker
 
