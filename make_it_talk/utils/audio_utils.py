@@ -31,7 +31,7 @@ def pySTFT(x, fft_length=1024, hop_length=256):
 
     return np.abs(result)
 
-def extract_f0_func_audiofile(audio_file, gender='M'):
+def extract_f0_func_audiofile(x, fs, gender='M'):
     floor_sp, ceil_sp = -80, 30
     mel_basis = mel(16000, 1024, fmin=90, fmax=7600, n_mels=80).T
     min_level = np.exp(-100 / 20 * np.log(10))
@@ -44,7 +44,7 @@ def extract_f0_func_audiofile(audio_file, gender='M'):
     else:
         raise ValueError
     prng = RandomState(0)
-    x, fs = sf.read(audio_file)
+    # x, fs = sf.read(audio_file)
     if(len(x.shape) >= 2):
         x = x[:, 0]
     if x.shape[0] % 256 == 0:

@@ -7,14 +7,30 @@ import torch.nn.functional as F
 import glob
 import os
 import shutil
+import soundfile as sf
 from math import ceil
 
 
 from make_it_talk.utils.audio_utils import match_target_amplitude, extract_f0_func_audiofile, quantize_f0_interp
 
+def parse_lb_tensor(filename):
+    return preprocess_wav(filename)
+
+def parse_sf_tensor(file_dir_path, filename):
+    file_path = os.path.join(file_dir_path, filename)
+    sound = AudioSegment.from_file(file_path, "wav")
+
+    audio_file = os.path.join(file_dir_path, 'tmp.wav')
+    normalized_sound = match_target_amplitude(sound, -20.0)
+    normalized_sound.export(audio_file, format='wav')
+
+    sf_tens = sf.read(audio_file)
+
+    os.remove(audio_file)
+    return sf_tens
 
 class AudioToEmbedding(nn.Module):
-    def __init__(self, root_dir) -> None:
+    def __init__(self, root_dir='.') -> None:
         super().__init__()
         self.speaker_embs = None
         self.content_extracter = None
@@ -23,9 +39,17 @@ class AudioToEmbedding(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.G = Generator(16, 256, 512, 16).eval().to(self.device)
 
-        print(self.autovc_model_path)
+        print("path to model: ", self.autovc_model_path)
         g_checkpoint = torch.load(self.autovc_model_path, map_location=self.device)
         self.G.load_state_dict(g_checkpoint['model'])
+
+    def forward(self, input):
+        # assert self.speaker_embs is not None
+        x_lb, x_sf = input
+        speaker = self.get_speaker_embedding(x_lb)
+        content = self.convert_single_wav_to_autovc_input(x_sf)
+
+        return speaker, content
 
 
     def get_content_embedding(self, audio_dir_path):
@@ -37,31 +61,18 @@ class AudioToEmbedding(nn.Module):
             os.system('ffmpeg -y -loglevel error -i {}/{} -ar 16000 {}/tmp.wav'.format(audio_dir_path, ain, audio_dir_path))
             shutil.copyfile('{}/tmp.wav', '{}/{}'.format(audio_dir_path, audio_dir_path, ain))
 
-            # au embedding
-
-            print('Processing audio file', ain)
-
-            au_data_i = self.convert_single_wav_to_autovc_input(audio_filename=os.path.join(audio_dir_path, ain))
-            au_data += au_data_i
+            au_data.append(self.convert_single_wav_to_autovc_input(audio_filename=os.path.join(audio_dir_path, ain)))
 
         if(os.path.isfile('{}/tmp.wav'.format(audio_dir_path))):
             os.remove('{}/tmp.wav'.format(audio_dir_path))
 
-    def get_audio_file_from_video(self, audio_file_path):
 
-        def match_target_amplitude(sound, target_dBFS):
-            change_in_dBFS = target_dBFS - sound.dBFS
-            return sound.apply_gain(change_in_dBFS)
-
-        sound = AudioSegment.from_file(audio_file_path, "wav")
-        normalized_sound = match_target_amplitude(sound, -20.0)
-        normalized_sound.export(audio_file_path, format='wav')
-
-    def get_speaker_embedding(self, audio_file_path, segment_len=960000):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        resemblyzer_encoder = VoiceEncoder(device=device)
-
-        wav = preprocess_wav(audio_file_path)
+    def get_speaker_embedding(self, lb_tensor):
+        # wav = preprocess_wav(lb_tensor)
+        wav = lb_tensor
+        
+        resemblyzer_encoder = VoiceEncoder(device=self.device)
+        segment_len=960000
         l = len(wav) // segment_len # segment_len = 16000 * 60
         l = np.max([1, l])
         all_embeds = []
@@ -74,7 +85,9 @@ class AudioToEmbedding(nn.Module):
 
         return self.speaker_embs
 
-    def convert_single_wav_to_autovc_input(self, audio_filename):
+    def convert_single_wav_to_autovc_input(self, input):
+        print(len(input))
+        input_x, input_fs = input
 
         def pad_seq(x, base=32):
             len_out = int(base * ceil(float(x.shape[0]) / base))
@@ -83,16 +96,15 @@ class AudioToEmbedding(nn.Module):
             return np.pad(x, ((0, len_pad), (0, 0)), 'constant'), len_pad
 
         
-        # emb = np.loadtxt('src/autovc/retrain_version/obama_emb.txt')
+        assert self.speaker_embs is not None
         emb_trg = torch.from_numpy(self.speaker_embs[np.newaxis, :].astype('float32')).to(self.device)
 
-        audio_file = audio_filename
+        # audio_file = audio_filename
+        # sound = AudioSegment.from_file(audio_file, "wav")
+        # normalized_sound = match_target_amplitude(sound, -20.0)
+        # normalized_sound.export(audio_file, format='wav')
 
-        sound = AudioSegment.from_file(audio_file, "wav")
-        normalized_sound = match_target_amplitude(sound, -20.0)
-        normalized_sound.export(audio_file, format='wav')
-
-        x_real_src, f0_norm = extract_f0_func_audiofile(audio_file, 'F')
+        x_real_src, f0_norm = extract_f0_func_audiofile(input_x, input_fs, 'F')
         f0_org_src = quantize_f0_interp(f0_norm)
 
 
