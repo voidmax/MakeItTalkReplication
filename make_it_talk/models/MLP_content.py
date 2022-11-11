@@ -18,4 +18,14 @@ class MLPContent(nn.Module):
 
     def forward(self, input):
         return self.mlp(input)
-            
+
+class MLPContentPlug(nn.Module):
+    def __init__(self, in_hs, out_hs):
+        super(MLPContentPlug, self).__init__()
+        self.linear = nn.Linear(in_hs, out_hs)
+
+    def forward(self, emb, land):
+        time = emb.shape[1]
+        land = torch.stack([land] * time, dim=1)
+        x = torch.cat([emb, land], dim=-1)
+        return self.linear(x)

@@ -27,13 +27,12 @@ class SpeakerAwareLandmarkDeltasPredictor(nn.Module):
             mlp_speaker_embedding,
             self_attention_encoder,
             mlp_speaker_aware,
-            landmarks_predictor,
     ):
+        super(SpeakerAwareLandmarkDeltasPredictor, self).__init__()
         self.lstm_speaker_aware = lstm_speaker_aware
         self.mlp_speaker_embedding = mlp_speaker_embedding
         self.self_attention_encoder = self_attention_encoder
         self.mlp_speaker_aware = mlp_speaker_aware
-        self.landmarks_predictor = landmarks_predictor
 
     def forward(
             self,
@@ -71,7 +70,7 @@ class TalkingHeadPipeline(nn.Module):
             discriminator: nn.Module,
     ):
         super(TalkingHeadPipeline, self).__init__()
-        self.audio_to_embedding = audio_to_embedding,
+        self.audio_to_embedding = audio_to_embedding
         self.facial_landmarks_extractor = facial_landmarks_extractor
         self.content_landmarks_predictor = content_landmarks_predictor
         self.personal_landmarks_predictor = personal_landmarks_predictor
@@ -115,7 +114,6 @@ def make_talking_head_pipeline(
         facial_landmarks_extractor,
         mlp_speaker_aware,
         mlp_speech_content,
-        landmarks_predictor,
         discriminator,
 ):
     content_landmarks_predictor = ContentLandmarkDeltasPredictor(
@@ -128,7 +126,6 @@ def make_talking_head_pipeline(
         mlp_speaker_embedding=mlp_speaker_embedding,
         self_attention_encoder=self_attention_encoder,
         mlp_speaker_aware=mlp_speaker_aware,
-        landmarks_predictor=landmarks_predictor,
     )
 
     return TalkingHeadPipeline(

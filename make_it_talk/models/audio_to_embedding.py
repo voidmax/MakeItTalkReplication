@@ -336,3 +336,17 @@ class Generator(nn.Module):
         mel_outputs_postnet = mel_outputs + mel_outputs_postnet.transpose(2,1)
         
         return mel_outputs, mel_outputs_postnet, torch.cat(codes, dim=-1)
+
+
+### PLUG FOR TESTING ###
+class AudioToEmbeddingPlug(nn.Module):
+    def __init__(self, audio_dim):
+        super(AudioToEmbeddingPlug, self).__init__()
+        self.hidden_size = 100
+        self.speaker_size = 101
+        self.linear = nn.Linear(audio_dim, self.hidden_size)
+        self.speaker_linear = nn.Linear(audio_dim, self.speaker_size)
+
+    def forward(self, input):
+        x = self.linear(input)
+        return x, self.speaker_linear(input).sum(1)

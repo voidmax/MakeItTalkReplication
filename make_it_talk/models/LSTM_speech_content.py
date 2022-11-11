@@ -16,3 +16,11 @@ class LSTMSpeechContent(nn.Module):
         out, _ = self.lstm(input)
         return out
             
+class LSTMSpeechContentPlug(nn.Module):
+    def __init__(self, in_hs, out_hs) -> None:
+        super().__init__()
+
+        self.linear = nn.Linear(in_hs, out_hs)
+
+    def forward(self, input):
+        return self.linear(input)

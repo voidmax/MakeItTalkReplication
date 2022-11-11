@@ -12,3 +12,16 @@ class FacialLandmarksExtractor(nn.Module):
             torch.Tensor(self.model.get_landmarks(i)) for i in input
         ]).view(input.shape[0], -1)
             
+class FacialLandmarksExtractorPlug(nn.Module):
+    def __init__(self, h, w):
+        super(FacialLandmarksExtractorPlug, self).__init__()
+        self.dim = 68 * 3
+        self.linear = nn.Linear(h * w, self.dim)
+
+    def forward(self, x):
+        if len(x.shape) == 4:
+            x = x.reshape(x.shape[0], x.shape[1], -1)
+        elif len(x.shape) == 3:
+            x = x.reshape(x.shape[0], -1)
+
+        return self.linear(x)
