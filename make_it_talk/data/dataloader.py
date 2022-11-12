@@ -13,8 +13,8 @@ from make_it_talk.utils.audio_utils import match_target_amplitude
 
 def parse_img_tensor(filepath):
     img = io.imread(filepath)
-    img_resized = transform.resize(img, (256, 256))
-    return torch.tensor(img_resized)
+    # img_resized = transform.resize(img, (256, 256))
+    return torch.tensor(img)
 
 def parse_lb_tensor(filepath):
     return torch.tensor(preprocess_wav(filepath))

@@ -156,7 +156,7 @@ def make_talking_head_pipeline_with_params(
         hidden_size_4=256,
         speaker_dim=256,
         audio_dim=80,
-        landmarks_dim=68*3
+        landmarks_dim=68*2
 ):
     audio_to_embedding = AudioToEmbedding(root_dir)
     lstm_speech_content = LSTMSpeechContent(audio_dim, hidden_size_1)

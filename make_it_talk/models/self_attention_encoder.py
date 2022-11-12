@@ -1,8 +1,18 @@
 import torch
 import torch.nn as nn
+import numpy as np
+
+def create_mask(size, tau):
+    iu1 = np.triu_indices(size, 1)
+    iu2 = np.triu_indices(size, 1 + tau)
+    a = np.ones((size, size)) * (-np.inf)
+    a[iu1] = 0
+    a[iu2] = -np.inf
+    return torch.tensor(a)
+
 
 class SelfAttentionEncoder(nn.Module):
-    def __init__(self, hidden_size_1=256, hidden_size_2=256, hidden_size_4=256, nhead=2, dim_feedforward=200, dropout=0.2):
+    def __init__(self, hidden_size_1=256, hidden_size_2=256, hidden_size_4=256, tau=256, nhead=2, dim_feedforward=200, dropout=0.2):
         super().__init__()
         d_model = hidden_size_1 + hidden_size_2
         self.attn = nn.TransformerEncoderLayer(
@@ -13,12 +23,12 @@ class SelfAttentionEncoder(nn.Module):
             batch_first=True, 
         )
         self.linear = nn.Linear(d_model, hidden_size_4)
+        self.tau = tau
 
     def forward(self, x_spk, x_cont):
         t = x_cont.shape[1]
         x = torch.cat([x_cont, x_spk.unsqueeze(1).repeat(1, t, 1)], dim=-1)
-        x = self.attn(x)
-        x = x[:, 0, ...].squeeze(1)
+        # x = self.attn(x, src_mask=create_mask(t, self.tau))
         x = self.linear(x)
         return x
 
