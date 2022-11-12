@@ -47,7 +47,6 @@ def train_content_landmarks_predictor(
             batch_size, landmarks_dim = initial_landmarks.shape
             predicted_landmarks = predicted_deltas + initial_landmarks.reshape(batch_size, 1, landmarks_dim)
 
-            # TODO: discuss this
             loss = loss_function(predicted_landmarks, true_landmarks)
             results['loss'] = loss.item()
 
