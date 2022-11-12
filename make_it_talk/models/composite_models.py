@@ -135,3 +135,55 @@ def make_talking_head_pipeline(
         generator,
         discriminator,
     )
+
+
+from make_it_talk.models.audio_to_embedding import AudioToEmbedding
+from make_it_talk.models.facial_landmarks_extractor import FacialLandmarksExtractor
+from make_it_talk.models.LSTM_speaker_aware import LSTMSpeakerAware
+from make_it_talk.models.LSTM_speech_content import LSTMSpeechContent
+from make_it_talk.models.MLP_content import MLPContent
+from make_it_talk.models.MLP_speaker import MLPSpeaker
+from make_it_talk.models.MLP_speaker_embedding import MLPSpeakerEmbedding
+from make_it_talk.models.self_attention_encoder import SelfAttentionEncoder
+from make_it_talk.models.discriminator import DiscriminatorPlug
+
+
+def make_talking_head_pipeline_with_params(
+        root_dir='.',
+        hidden_size_1=256,
+        hidden_size_2=256,
+        hidden_size_3=256,
+        hidden_size_4=256,
+        speaker_dim=256,
+        audio_dim=80,
+        landmarks_dim=68*3
+):
+    audio_to_embedding = AudioToEmbedding(root_dir)
+    lstm_speech_content = LSTMSpeechContent(audio_dim, hidden_size_1)
+    lstm_speaker_aware = LSTMSpeakerAware(audio_dim, hidden_size_2)
+    mlp_speaker_embedding = MLPSpeakerEmbedding(speaker_dim, hidden_size_3)
+    self_attention_encoder = SelfAttentionEncoder(hidden_size_2, hidden_size_3, hidden_size_4)
+    facial_landmarks_extractor = FacialLandmarksExtractor()
+    mlp_speech_content = MLPContent(hidden_size_1, landmarks_dim)
+    mlp_speaker_aware = MLPSpeaker(hidden_size_4, landmarks_dim)
+    discriminator = DiscriminatorPlug(0, 0, 0)
+
+    content_landmarks_predictor = ContentLandmarkDeltasPredictor(
+        lstm_speech_content,
+        mlp_speech_content,
+    )
+
+    generator = SpeakerAwareLandmarkDeltasPredictor(
+        lstm_speaker_aware=lstm_speaker_aware,
+        mlp_speaker_embedding=mlp_speaker_embedding,
+        self_attention_encoder=self_attention_encoder,
+        mlp_speaker_aware=mlp_speaker_aware,
+    )
+
+    return TalkingHeadPipeline(
+        audio_to_embedding,
+        facial_landmarks_extractor,
+        content_landmarks_predictor,
+        generator,
+        discriminator,
+    )

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class MLPContent(nn.Module):
-    def __init__(self, hidden_size_4, landmarks_dim, dropout=0.5) -> None:
+    def __init__(self, hidden_size_4=256, landmarks_dim=68*3, dropout=0.5) -> None:
         super().__init__()
         
         self.mlp = nn.Sequential(

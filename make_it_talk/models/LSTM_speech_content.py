@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class LSTMSpeechContent(nn.Module):
-    def __init__(self, audio_dim, hidden_size_1, dropout=0.5) -> None:
+    def __init__(self, audio_dim=80, hidden_size_1=256, dropout=0.5) -> None:
         super().__init__()
         
         self.lstm = nn.LSTM(input_size=audio_dim, 
