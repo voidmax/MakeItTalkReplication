@@ -95,7 +95,7 @@ class AudioVideoImageTensorDataset(torch.utils.data.Dataset):
         sample = {
             'video': video_tens, 
             'audio_content': content_emb_tens,
-            'audio_speacker': speaker_emb_tens,
+            'audio_speaker': speaker_emb_tens,
             'start_image': image_tens,  
             }
 
