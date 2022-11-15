@@ -4,7 +4,7 @@ from pathlib import Path
 target_freq = 16000
 
 def resample_file(path_from, path_to):
-    sound = AudioSegment.from_wav(path_from)
+    sound = AudioSegment.from_file(path_from)
     sound_w_new_fs = sound.set_frame_rate(target_freq)
     sound_w_new_fs.export(path_to, format="wav")
 
