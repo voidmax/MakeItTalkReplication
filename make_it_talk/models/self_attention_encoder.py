@@ -28,9 +28,27 @@ class SelfAttentionEncoder(nn.Module):
     def forward(self, x_spk, x_cont):
         t = x_cont.shape[1]
         x = torch.cat([x_cont, x_spk.unsqueeze(1).repeat(1, t, 1)], dim=-1)
-        # x = self.attn(x, src_mask=create_mask(t, self.tau))
+        x = self.attn(x)
+        x = x[:, 0, :].unsqueeze(1)
         x = self.linear(x)
         return x
+
+    # def forward(self, x_spk, x_cont):
+    #     tau = self.tau
+    #     time = x_cont.shape[1]
+    #     if time < tau:
+    #         tau = time
+    #     attn_out = []
+    #     for t in range(time):
+    #         t_end = min(t + tau, time)
+    #         x_cont_window = x_cont[:, t:t_end, :]
+    #         x_spk_reshaped = x_spk.unsqueeze(1).repeat(1, t_end - t, 1)
+    #         x = torch.cat([x_cont_window, x_spk_reshaped], dim=-1)
+    #         x = self.attn(x)[:, 0, :]
+    #         attn_out.append(x.unsqueeze(1))
+    #     x = torch.cat(attn_out, dim=1)
+    #     x = self.linear(x)
+    #     return x
 
 
 class SelfAttentionEncoderPlug(nn.Module):
