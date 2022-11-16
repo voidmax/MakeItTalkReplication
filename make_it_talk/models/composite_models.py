@@ -19,6 +19,11 @@ class ContentLandmarkDeltasPredictor(nn.Module):
         predicted_deltas = self.mlp_speech_content(processed_audios, landmarks)
         return predicted_deltas
 
+class Transpose(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+    def forward(self, x):
+        return torch.transpose(x, 1, 2)
 
 # this is the "same" model but made by authors, so we can reuse their state_dicts instead of pretraining it ourselves
 class ContentLandmarkDeltasPredictorOriginal(nn.Module):
@@ -87,8 +92,22 @@ class ContentLandmarkDeltasPredictorOriginal(nn.Module):
         #    face_id = face_id.repeat(output.shape[0], 1)
         #output2 = torch.cat((output, face_id), dim=1)
 
-        output2 = self.fc(output2)
-        print(output2.shape)
+        x = output2
+        x = self.fc[0](x) # first linear
+        x = torch.transpose(x, 1, 2)
+        x = self.fc[1](x) # first bn
+        x = torch.transpose(x, 1, 2)
+        x = self.dc[2](x) # relu
+        x = self.fc[3](x) # second linear
+        x = torch.transpose(x, 1, 2)
+        x = self.fc[4](x) # second bn
+        x = torch.transpose(x, 1, 2)
+        x = self.fc[5](x) # second relu
+        x = self.fc[6](x) # third linear
+        output2 = x
+
+        #output2 = self.fc(output2)
+        #print(output2.shape)
         # output += face_id
 
         return output2
