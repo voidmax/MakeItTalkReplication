@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 from IPython.display import clear_output
 from tqdm.auto import tqdm
@@ -76,7 +77,7 @@ def plot_losses(log):
             if name == 'metrics':
                 continue
             if epoch[name]:
-                losses[name].append(epoch[name])
+                losses[name].append(np.mean(epoch[name]))
 
     # check that losses drop with time
 
@@ -124,8 +125,8 @@ def train_pipeline(
 
         training_generator_now = epoch % 2
 
+        results = {'generator_loss': [], 'discriminator_loss': []}
         for i, batch in tqdm(enumerate(train_dataloader)):
-            results = {}
 
             start_landmark = batch['start_landmark'].to(device)
             content = batch['content'].to(device)
@@ -147,8 +148,8 @@ def train_pipeline(
 
             if training_generator_now:
                 loss = generator_loss_function(predicted_landmarks, realism_predicted, true_landmarks)
-                results['generator_loss'] = loss.item()
-                results['discriminator_loss'] = None
+                results['generator_loss'].append(loss.item())
+                #results['discriminator_loss'] = None
                 generator_optimizer.zero_grad()
                 loss.backward()
                 generator_optimizer.step()
@@ -158,8 +159,8 @@ def train_pipeline(
                 realism_true = talking_head_pipeline.discriminator(true_landmarks, personal_processed, speaker_processed)
 
                 loss = discriminator_loss_function(realism_predicted, realism_true)
-                results['generator_loss'] = None
-                results['discriminator_loss'] = loss.item()
+                #results['generator_loss'] = None
+                results['discriminator_loss'].apend(loss.item())
                 discriminator_optimizer.zero_grad()
                 loss.backward()
                 discriminator_optimizer.step()
