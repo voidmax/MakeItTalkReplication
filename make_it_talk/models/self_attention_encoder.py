@@ -29,7 +29,7 @@ class SelfAttentionEncoder(nn.Module):
         t = x_cont.shape[1]
         x = torch.cat([x_cont, x_spk.unsqueeze(1).repeat(1, t, 1)], dim=-1)
         x = self.attn(x)
-        x = x[:, 0, :].unsqueeze(1)
+        #x = x[:, 0, :].unsqueeze(1)
         x = self.linear(x)
         return x
 
