@@ -150,13 +150,14 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
         speaker_emb_tens = torch.load(audio_file_path + '_speacker.pt', map_location=self.device)
         content_emb_tens = torch.load(audio_file_path + '_content.pt', map_location=self.device)
         
-        tens_shape = content_emb_tens.shape
+        time = content_emb_tens.shape[0]
         landmarks_np = np.load(video_file_path + '.npy')
-        landmarks_tens = F.interpolate(torch.tensor(landmarks_np, device=self.device), tens_shape, mode='linear')
+        landmarks_tens_bad_size = torch.tensor(landmarks_np, device=self.device).transpose(0, 2)
+        landmarks_tens = F.interpolate(landmarks_tens_bad_size, [time], mode='linear').transpose(0, 2)
 
-        window = np.arange(0, tens_shape[0])
-        if tens_shape[0] > self.window_size:
-            t = np.random.randint(0, tens_shape[0] - self.window_size)
+        window = np.arange(0, time)
+        if time > self.window_size:
+            t = np.random.randint(0, time - self.window_size)
             window = np.arange(t, t + self.window_size)
 
         sample = {
