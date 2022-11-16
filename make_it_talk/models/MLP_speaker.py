@@ -10,20 +10,15 @@ class Transpose(nn.Module):
 class MLPSpeaker(nn.Module):
     def __init__(self, hidden_size_4=256, landmarks_dim=68*3, dropout=0.5) -> None:
         super().__init__()
-        
-        self.mlp = nn.Sequential(
-            Transpose(),
-            nn.BatchNorm1d(hidden_size_4 + landmarks_dim),
-            Transpose(),
-            nn.Linear(hidden_size_4 + landmarks_dim, hidden_size_4),
+
+        self.fc = nn.Sequential(
+            nn.Linear(hidden_size_4 + landmarks_dim, 512),
+            nn.BatchNorm1d(512),
             nn.ReLU(),
-            nn.Dropout(dropout),
-            Transpose(),
+            nn.Linear(512, 256),
             nn.BatchNorm1d(hidden_size_4),
-            Transpose(),
-            nn.Linear(hidden_size_4, landmarks_dim),
             nn.ReLU(),
-            nn.Dropout(dropout),
+            nn.Linear(256, landmarks_dim),
         )
 
     def forward(self, input_audio, input_landmarks):
@@ -31,8 +26,8 @@ class MLPSpeaker(nn.Module):
         time = input_audio.shape[1]
         landmarks = input_landmarks.unsqueeze(1).repeat(1, time, 1)
         x = torch.cat([input_audio, landmarks], dim=-1)
-        print("MLP_CONT_x: ", x)
-        return self.mlp(x)
+        # print("MLP_CONT_x: ", x)
+        return self.fc(x)
 
 
 class MLPSpeakerPlug(nn.Module):

@@ -15,7 +15,8 @@ class LSTMSpeechContent(nn.Module):
     def forward(self, input):
         out, _ = self.lstm(input)
         return out
-            
+
+
 class LSTMSpeechContentPlug(nn.Module):
     def __init__(self, in_hs, out_hs) -> None:
         super().__init__()
