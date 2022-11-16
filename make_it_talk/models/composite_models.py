@@ -151,7 +151,7 @@ class TalkingHeadPipeline(nn.Module):
         #audio_embeddings = self.audio_to_embedding((audios_content, audios_speaker))
         audio_embeddings = (audios_content, audios_speaker)
         #landmarks = self.facial_landmarks_extractor(pictures)
-        landmarks = pictures.reshape()
+        landmarks = pictures
 
         content_deltas = self.content_landmarks_predictor(audio_embeddings, landmarks)
 
