@@ -118,6 +118,8 @@ def train_pipeline(
 
     for epoch in range(n_epochs):
 
+        print(f'Epoch {epoch + 1} started...')
+
         training_generator_now = epoch % 2
 
         for i, batch in enumerate(train_dataloader):
