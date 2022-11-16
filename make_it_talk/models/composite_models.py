@@ -78,6 +78,7 @@ class ContentLandmarkDeltasPredictorOriginal(nn.Module):
         print(output.shape)
         time = au.shape[1]
         landmarks = face_id.unsqueeze(1).repeat(1, time, 1)
+        print(landmarks.shape)
         output2 = torch.cat([au, landmarks], dim=-1)
         print(output2.shape)
         #output = output[:, -1, :]
