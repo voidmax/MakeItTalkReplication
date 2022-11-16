@@ -53,6 +53,8 @@ class AudioPreprocesser:
                 continue
             spk_tens = self.parse_speacker_tensor(file_name)
             cont_tens = self.parse_content_tensor(file_name)
+            print('save paths: ' + os.path.join(self.root_audio_dir, 'speacker_' + file_name[:-3] + 'pt'))
+            print('shape: ', spk_tens.shape)
             torch.save(spk_tens, os.path.join(self.root_audio_dir, 'speacker_' + file_name[:-3] + 'pt'))
             torch.save(cont_tens, os.path.join(self.root_audio_dir, 'content_' + file_name[:-3] + 'pt'))
 
