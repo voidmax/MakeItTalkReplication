@@ -150,7 +150,7 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
         
         tens_shape = content_emb_tens.shape
         landmarks_np = np.load(video_file_path + '.npy')
-        landmarks_tens = F.interpolate(torch.tensor(landmarks_np, device=self.device), tens_shape)
+        landmarks_tens = F.interpolate(torch.tensor(landmarks_np, device=self.device), tens_shape, mode='linear')
 
         window = np.arange(0, tens_shape[0])
         if tens_shape[0] > self.window_size:
