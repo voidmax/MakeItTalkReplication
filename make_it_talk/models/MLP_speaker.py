@@ -13,10 +13,14 @@ class MLPSpeaker(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(hidden_size_4 + landmarks_dim, 512),
+            Transpose(),
             nn.BatchNorm1d(512),
+            Transpose(),
             nn.ReLU(),
             nn.Linear(512, 256),
+            Transpose(),
             nn.BatchNorm1d(hidden_size_4),
+            Transpose(),
             nn.ReLU(),
             nn.Linear(256, landmarks_dim),
         )
