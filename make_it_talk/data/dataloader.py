@@ -124,7 +124,14 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
 
         audio_cont_names = set(trim_path(path, len('_content.pt')) for path in audio_cont_paths)
         audio_spk_names = set(trim_path(path, len('_speacker.pt')) for path in audio_spk_paths)
-        video_names = set(trim_path(path, len('.npy')) for path in video_paths)
+        video_names = set()
+        for path in video_paths:
+            try:
+                np.load(path)
+                video_names.add(trim_path(path, len('.npy')))
+            except ValueError as e:
+                continue
+        
 
         self.paths = list(audio_cont_names & audio_spk_names & video_names)
         print('Num paths: ', len(self.paths))
