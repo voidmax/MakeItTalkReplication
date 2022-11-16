@@ -43,7 +43,7 @@ class AudioPreprocesser:
         self.emb_obama = torch.from_numpy(emb.astype('float32')).to(self.device)
 
     def Parse(self):
-        files = Path(self.root_audio_dir).glob('**/*.wav')
+        files = list(Path(self.root_audio_dir).glob('**/*.wav'))
         print('Found ' + str(len(Path(self.root_audio_dir).parts)) + ' folders')
         print('Root path: ', str(Path(self.root_audio_dir)))
         for filename in files:
