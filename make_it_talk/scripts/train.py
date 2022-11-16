@@ -80,17 +80,13 @@ def plot_losses(log):
             if epoch[name]:
                 losses[name].append(np.mean(epoch[name]))
 
-    # check that losses drop with time
-
     plt.figure()
-    plt.plot(losses['generator_loss'])
-    plt.title('generator loss')
-    plt.grid()
-    plt.show()
-    plt.figure()
-    plt.plot(losses['discriminator_loss'])
-    plt.title('discriminator loss')
-    plt.grid()
+    ax = plt.subplot(2, 1, 1)
+    ax.plot(losses['generator_loss'])
+    ax.set_title('generator loss')
+    ax = plt.subplot(2, 1, 2)
+    ax.plot(losses['discriminator_loss'])
+    ax.set_title('discriminator loss')
     plt.show()
 
 
