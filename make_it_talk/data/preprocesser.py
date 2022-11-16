@@ -5,10 +5,10 @@ from resemblyzer import preprocess_wav, VoiceEncoder
 from pydub import AudioSegment
 import soundfile as sf
 import numpy as np
-from skimage import io, transform
-import librosa
-import glob
-import cv2
+# from skimage import io, transform
+# import librosa
+# import glob
+# import cv2
 from math import ceil
 
 from make_it_talk.utils.audio_utils import match_target_amplitude, extract_f0_func_audiofile, quantize_f0_interp
@@ -45,8 +45,8 @@ class AudioPreprocesser:
         self.load_autovc_weights()
         self.load_obama_embs()
         for file_name in files:
-            # if file_name.startswith('tmp'):
-            #     continue
+            if str(file_name).endswith('tmp.wav'):
+                continue
             spk_tens = self.parse_speacker_tensor(file_name)
             cont_tens = self.parse_content_tensor(file_name)
             torch.save(spk_tens, os.path.join(self.root_audio_dir, 'speacker_' + file_name[:-3] + 'pt'))
