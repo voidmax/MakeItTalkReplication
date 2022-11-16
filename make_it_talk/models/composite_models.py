@@ -68,17 +68,18 @@ class ContentLandmarkDeltasPredictorOriginal(nn.Module):
     def forward(self, au, face_id):
 
         inputs = au
+        print(inputs.shape)
         if(self.use_prior_net):
             inputs = self.fc_prior(inputs)
             #inputs = self.fc_prior(inputs.contiguous().view(-1, self.in_size))
             #inputs = inputs.view(-1, self.num_window_frames, self.lstm_size)
-
+        print(inputs.shape)
         output, (hn, cn) = self.bilstm(inputs)
-
+        print(output.shape)
         time = au.shape[1]
         landmarks = face_id.unsqueeze(1).repeat(1, time, 1)
         output2 = torch.cat([au, landmarks], dim=-1)
-
+        print(output2.shape)
         #output = output[:, -1, :]
 
         #if(face_id.shape[0] == 1):
@@ -86,6 +87,7 @@ class ContentLandmarkDeltasPredictorOriginal(nn.Module):
         #output2 = torch.cat((output, face_id), dim=1)
 
         output2 = self.fc(output2)
+        print(output2.shape)
         # output += face_id
 
         return output2
