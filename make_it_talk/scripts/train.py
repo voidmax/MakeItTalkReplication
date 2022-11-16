@@ -161,7 +161,7 @@ def train_pipeline(
 
                 loss = discriminator_loss_function(realism_predicted, realism_true)
                 #results['generator_loss'] = None
-                results['discriminator_loss'].apend(loss.item())
+                results['discriminator_loss'].append(loss.item())
                 discriminator_optimizer.zero_grad()
                 loss.backward()
                 discriminator_optimizer.step()
