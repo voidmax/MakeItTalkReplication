@@ -4,9 +4,12 @@ import face_alignment
 import numpy as np
 
 class FacialLandmarksExtractor(nn.Module):
-    def __init__(self) -> None:
+    def __init__(self, use_3D = False) -> None:
         super().__init__()
-        self.model = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, flip_input=False,  device='cpu')
+        if not use_3D:
+            self.model = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, flip_input=False,  device='cpu')
+        else:
+            self.model = face_alignment.FaceAlignment(face_alignment.LandmarksType._3D, flip_input=False, device='cpu')
 
     def forward(self, input):
         return torch.stack([

@@ -20,6 +20,71 @@ class ContentLandmarkDeltasPredictor(nn.Module):
         return predicted_deltas
 
 
+# this is the "same" model but made by authors, so we can reuse their state_dicts instead of pretraining it ourselves
+class ContentLandmarkDeltasPredictorOriginal(nn.Module):
+
+    def __init__(self, num_window_frames=18, in_size=80, lstm_size=0, use_prior_net=False, hidden_size=256, num_layers=3, drop_out=0, bidirectional=False):
+        super(ContentLandmarkDeltasPredictorOriginal, self).__init__()
+
+        self.fc_prior = self.fc = nn.Sequential(
+            nn.Linear(in_features=in_size, out_features=256),
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU(0.2),
+            nn.Linear(256, lstm_size),
+        )
+
+        self.use_prior_net = use_prior_net
+        if(use_prior_net):
+            self.bilstm = nn.LSTM(input_size=lstm_size,
+                                  hidden_size=hidden_size,
+                                  num_layers=num_layers,
+                                  dropout=drop_out,
+                                  bidirectional=bidirectional,
+                                  batch_first=True, )
+        else:
+            self.bilstm = nn.LSTM(input_size=in_size,
+                                  hidden_size=hidden_size,
+                                  num_layers=num_layers,
+                                  dropout=drop_out,
+                                  bidirectional=bidirectional,
+                                  batch_first=True, )
+
+        self.in_size = in_size
+        self.lstm_size = lstm_size
+        self.num_window_frames = num_window_frames
+
+        self.fc_in_features = hidden_size * 2 if bidirectional else hidden_size
+        self.fc = nn.Sequential(
+            nn.Linear(in_features=self.fc_in_features + 204, out_features=512),
+            nn.BatchNorm1d(512),
+            nn.LeakyReLU(0.2),
+            nn.Linear(512, 256),
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU(0.2),
+            nn.Linear(256, 204),
+        )
+
+
+    def forward(self, au, face_id):
+
+        inputs = au
+        if(self.use_prior_net):
+            inputs = self.fc_prior(inputs.contiguous().view(-1, self.in_size))
+            inputs = inputs.view(-1, self.num_window_frames, self.lstm_size)
+
+        output, (hn, cn) = self.bilstm(inputs)
+        output = output[:, -1, :]
+
+        if(face_id.shape[0] == 1):
+            face_id = face_id.repeat(output.shape[0], 1)
+        output2 = torch.cat((output, face_id), dim=1)
+
+        output2 = self.fc(output2)
+        # output += face_id
+
+        return output2, face_id
+
+
 class SpeakerAwareLandmarkDeltasPredictor(nn.Module):
     def __init__(
             self,
@@ -78,11 +143,14 @@ class TalkingHeadPipeline(nn.Module):
 
     def forward(
             self,
-            audios,
+            audios_content,
+            audios_speaker,
             pictures,
             return_discriminator_inputs=True,
     ):
-        audio_embeddings = self.audio_to_embedding(audios)
+        print('started audio_to_embedding')
+        audio_embeddings = self.audio_to_embedding((audios_content, audios_speaker))
+        print(f'audio embeddings and speaker shape: {audio_embeddings[0].shape}, {audio_embeddings[1].shape}')
         landmarks = self.facial_landmarks_extractor(pictures)
 
         content_deltas = self.content_landmarks_predictor(audio_embeddings, landmarks)
@@ -156,22 +224,26 @@ def make_talking_head_pipeline_with_params(
         hidden_size_4=256,
         speaker_dim=256,
         audio_dim=80,
-        landmarks_dim=68*2
+        landmarks_dim=68*3,
+        use_original_content_predictor=True,
 ):
+    if use_original_content_predictor:
+        content_landmarks_predictor = ContentLandmarkDeltasPredictorOriginal()
+    else:
+        lstm_speech_content = LSTMSpeechContent(audio_dim, hidden_size_1)
+        mlp_speech_content = MLPContent(hidden_size_1, landmarks_dim)
+        content_landmarks_predictor = ContentLandmarkDeltasPredictor(
+            lstm_speech_content,
+            mlp_speech_content,
+        )
+
     audio_to_embedding = AudioToEmbedding(root_dir)
-    lstm_speech_content = LSTMSpeechContent(audio_dim, hidden_size_1)
     lstm_speaker_aware = LSTMSpeakerAware(audio_dim, hidden_size_2)
     mlp_speaker_embedding = MLPSpeakerEmbedding(speaker_dim, hidden_size_3)
     self_attention_encoder = SelfAttentionEncoder(hidden_size_2, hidden_size_3, hidden_size_4)
     facial_landmarks_extractor = FacialLandmarksExtractor()
-    mlp_speech_content = MLPContent(hidden_size_1, landmarks_dim)
     mlp_speaker_aware = MLPSpeaker(hidden_size_4, landmarks_dim)
     discriminator = DiscriminatorPlug(0, 0, 0)
-
-    content_landmarks_predictor = ContentLandmarkDeltasPredictor(
-        lstm_speech_content,
-        mlp_speech_content,
-    )
 
     generator = SpeakerAwareLandmarkDeltasPredictor(
         lstm_speaker_aware=lstm_speaker_aware,
