@@ -26,7 +26,7 @@ class MLPSpeaker(nn.Module):
         )
 
     def forward(self, input_audio, input_landmarks):
-        print("MLP_CONT: ", input_audio.shape, input_landmarks.shape)
+        #print("MLP_CONT: ", input_audio.shape, input_landmarks.shape)
         time = input_audio.shape[1]
         landmarks = input_landmarks.unsqueeze(1).repeat(1, time, 1)
         x = torch.cat([input_audio, landmarks], dim=-1)
