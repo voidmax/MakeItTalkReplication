@@ -102,6 +102,10 @@ def train_pipeline(
             speaker = batch['speaker'].to(device)
             true_landmarks = batch['landmarks'].to(device)
 
+            batch_size, time = true_landmarks.shape[0], true_landmarks.shape[1]
+            start_landmark = start_landmark.reshape(batch_size, -1)
+            true_landmarks = true_landmarks.reshape(batch_size, time, -1)
+
             #true_landmarks = talking_head_pipeline.facial_landmarks_extractor(true_videos)
 
             predicted_landmarks, discriminator_inputs = talking_head_pipeline(content, speaker, start_landmark)
