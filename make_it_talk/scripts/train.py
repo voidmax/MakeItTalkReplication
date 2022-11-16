@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from IPython.display import clear_output
+from tqdm.auto import tqdm
+
 from make_it_talk.models import *
 
 
@@ -28,10 +31,11 @@ def train_content_landmarks_predictor(
     talking_head_pipeline.content_landmarks_predictor.requires_grad = True
 
     for epoch in range(n_epochs):
+        print(f'Epoch {epoch + 1} started...')
         results = {}
         results['loss'] = []
         results['metrics'] = []
-        for i, batch in enumerate(dataloader):
+        for i, batch in tqdm(enumerate(dataloader)):
 
             initial_pictures, audios, true_videos = batch
 
@@ -62,6 +66,28 @@ def train_content_landmarks_predictor(
         training_log.append(results)
 
     return training_log
+
+
+def plot_losses(log):
+    losses = {'generator_loss': [], 'discriminator_loss': []}
+
+    for epoch in log:
+        for name in epoch:
+            if name == 'metrics':
+                continue
+            if epoch[name]:
+                losses[name].append(epoch[name])
+
+    # check that losses drop with time
+
+    plt.figure()
+    plt.plot(losses['generator_loss'])
+    plt.title('generator loss')
+    plt.show()
+    plt.figure()
+    plt.plot(losses['discriminator_loss'])
+    plt.title('discriminator loss')
+    plt.show()
 
 
 def train_pipeline(
@@ -140,6 +166,8 @@ def train_pipeline(
             results['metrics'] = metric_results
 
         training_log.append(results)
+        clear_output()
+        plot_losses(training_log)
 
     return training_log
 
