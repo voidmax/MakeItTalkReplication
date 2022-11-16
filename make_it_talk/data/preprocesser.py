@@ -30,12 +30,15 @@ class AudioPreprocesser:
 
     def load_autovc_weights(self):
         weights_path = os.path.join(self.checkpoints_dir, 'checkpoints', 'audio', 'ckpt_autovc.pth')
+        print('pretrained weights: ', weights_path)
 
         g_checkpoint = torch.load(weights_path, map_location=self.device)
         self.generator.load_state_dict(g_checkpoint['model'])
 
     def load_obama_embs(self):
         obama_path = os.path.join(self.checkpoints_dir, 'checkpoints', 'audio', 'obama_emb.txt')
+
+        print('Obama embeds: ', obama_path)
         emb = np.loadtxt(obama_path)
         self.emb_obama = torch.from_numpy(emb.astype('float32')).to(self.device)
 
