@@ -44,7 +44,7 @@ class AudioPreprocesser:
 
     def Parse(self):
         files = Path(self.root_audio_dir).glob('**/*.wav')
-        print('Found ' + len(files.parts) + ' files')
+        print('Found ' + len(Path(self.root_audio_dir).parts) + ' folders')
         # files = glob.glob1(self.root_audio_dir, '*.wav')
         self.load_autovc_weights()
         self.load_obama_embs()
