@@ -44,7 +44,7 @@ class AudioPreprocesser:
 
     def Parse(self):
         files = list(Path(self.root_audio_dir).glob('**/*.wav'))
-        print('Found ' + str(len(Path(self.root_audio_dir).parts)) + ' folders')
+        print('Found ', len(list(Path(self.root_audio_dir).glob('**/*.wav'))), ' folders')
         print('Root path: ', str(Path(self.root_audio_dir)))
         for filename in files:
             print('filename: ', filename)
