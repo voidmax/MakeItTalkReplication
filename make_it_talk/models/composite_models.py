@@ -23,7 +23,7 @@ class ContentLandmarkDeltasPredictor(nn.Module):
 # this is the "same" model but made by authors, so we can reuse their state_dicts instead of pretraining it ourselves
 class ContentLandmarkDeltasPredictorOriginal(nn.Module):
 
-    def __init__(self, num_window_frames=18, in_size=80, lstm_size=161, use_prior_net=False, hidden_size=256, num_layers=3, drop_out=0, bidirectional=False):
+    def __init__(self, num_window_frames=18, in_size=80, lstm_size=161, use_prior_net=True, hidden_size=256, num_layers=3, drop_out=0, bidirectional=False):
         super(ContentLandmarkDeltasPredictorOriginal, self).__init__()
 
         self.fc_prior = self.fc = nn.Sequential(
