@@ -69,20 +69,26 @@ class ContentLandmarkDeltasPredictorOriginal(nn.Module):
 
         inputs = au
         if(self.use_prior_net):
-            inputs = self.fc_prior(inputs.contiguous().view(-1, self.in_size))
-            inputs = inputs.view(-1, self.num_window_frames, self.lstm_size)
+            inputs = self.fc_prior(inputs)
+            #inputs = self.fc_prior(inputs.contiguous().view(-1, self.in_size))
+            #inputs = inputs.view(-1, self.num_window_frames, self.lstm_size)
 
         output, (hn, cn) = self.bilstm(inputs)
-        output = output[:, -1, :]
 
-        if(face_id.shape[0] == 1):
-            face_id = face_id.repeat(output.shape[0], 1)
-        output2 = torch.cat((output, face_id), dim=1)
+        time = au.shape[1]
+        landmarks = face_id.unsqueeze(1).repeat(1, time, 1)
+        output2 = torch.cat([au, landmarks], dim=-1)
+
+        #output = output[:, -1, :]
+
+        #if(face_id.shape[0] == 1):
+        #    face_id = face_id.repeat(output.shape[0], 1)
+        #output2 = torch.cat((output, face_id), dim=1)
 
         output2 = self.fc(output2)
         # output += face_id
 
-        return output2, face_id
+        return output2
 
 
 class SpeakerAwareLandmarkDeltasPredictor(nn.Module):
