@@ -136,7 +136,9 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
         print("before filter ", len(video_paths))
         for path in video_paths:
             try:
-                np.load(path)
+                tmp = np.load(path)
+                if tmp.shape[2] < 3:
+                    continue
                 video_names.add(trim_path(path, len('.npy')))
             except ValueError as e:
                 continue
