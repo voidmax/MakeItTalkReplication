@@ -27,6 +27,7 @@ class AudioPreprocesser:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.generator = Generator(16, 256, 512, 16).eval().to(self.device)
         self.emb_obama = torch.zeros(256)
+        self.error_files = []
 
     def load_autovc_weights(self):
         weights_path = os.path.join(self.checkpoints_dir, 'checkpoints', 'audio', 'ckpt_autovc.pth')
@@ -56,7 +57,11 @@ class AudioPreprocesser:
             if file_name.endswith('tmp.wav'):
                 continue
             spk_tens = self.parse_speacker_tensor(file_name)
-            cont_tens = self.parse_content_tensor(file_name)
+            try:
+                cont_tens = self.parse_content_tensor(file_name)
+            except AssertionError as e:
+                self.error_files.append(file_name)
+                continue
             # print('save paths: ' + os.path.join(self.root_audio_dir, 'speacker_' + file_name[:-3] + 'pt'))
             # print('shape: ', spk_tens)
             torch.save(spk_tens, file_name[:-4] + '_speacker.pt')
