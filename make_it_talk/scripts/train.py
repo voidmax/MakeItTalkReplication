@@ -83,10 +83,12 @@ def plot_losses(log):
     plt.figure()
     plt.plot(losses['generator_loss'])
     plt.title('generator loss')
+    plt.grid()
     plt.show()
     plt.figure()
     plt.plot(losses['discriminator_loss'])
     plt.title('discriminator loss')
+    plt.grid()
     plt.show()
 
 
