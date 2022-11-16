@@ -84,9 +84,11 @@ def plot_losses(log):
     ax = plt.subplot(2, 1, 1)
     ax.plot(losses['generator_loss'])
     ax.set_title('generator loss')
+    ax.grid()
     ax = plt.subplot(2, 1, 2)
     ax.plot(losses['discriminator_loss'])
     ax.set_title('discriminator loss')
+    ax.grid()
     plt.show()
 
 
