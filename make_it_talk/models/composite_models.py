@@ -148,10 +148,10 @@ class TalkingHeadPipeline(nn.Module):
             pictures,
             return_discriminator_inputs=True,
     ):
-        print('started audio_to_embedding')
-        audio_embeddings = self.audio_to_embedding((audios_content, audios_speaker))
-        print(f'audio embeddings and speaker shape: {audio_embeddings[0].shape}, {audio_embeddings[1].shape}')
-        landmarks = self.facial_landmarks_extractor(pictures)
+        #audio_embeddings = self.audio_to_embedding((audios_content, audios_speaker))
+        audio_embeddings = (audios_content, audios_speaker)
+        #landmarks = self.facial_landmarks_extractor(pictures)
+        landmarks = pictures.reshape()
 
         content_deltas = self.content_landmarks_predictor(audio_embeddings, landmarks)
 
