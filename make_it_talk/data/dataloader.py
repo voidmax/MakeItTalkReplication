@@ -115,7 +115,7 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
         self.window_size = window_size
         audio_cont_paths = Path(self.audio_dir).glob('**/*_content.pt')
         audio_spk_paths = Path(self.audio_dir).glob('**/*_speacker.pt')
-        video_paths = Path(self.video_dir).glob('**/*.npy')
+        video_paths = list(Path(self.video_dir).glob('**/*.npy'))
 
         data_path_length = len(Path(data_dir).parts)
         def trim_path(path, k):
@@ -125,12 +125,14 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
         audio_cont_names = set(trim_path(path, len('_content.pt')) for path in audio_cont_paths)
         audio_spk_names = set(trim_path(path, len('_speacker.pt')) for path in audio_spk_paths)
         video_names = set()
+        print("before filter ", len(video_paths))
         for path in video_paths:
             try:
                 np.load(path)
                 video_names.add(trim_path(path, len('.npy')))
             except ValueError as e:
                 continue
+        print("after filter ", len(video_names))
         
 
         self.paths = list(audio_cont_names & audio_spk_names & video_names)
@@ -148,13 +150,14 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
         speaker_emb_tens = torch.load(audio_file_path + '_speacker.pt', map_location=self.device)
         content_emb_tens = torch.load(audio_file_path + '_content.pt', map_location=self.device)
         
-        tens_shape = content_emb_tens.shape
+        time = content_emb_tens.shape[0]
         landmarks_np = np.load(video_file_path + '.npy')
-        landmarks_tens = F.interpolate(torch.tensor(landmarks_np, device=self.device), tens_shape, mode='linear')
+        landmarks_tens_bad_size = torch.tensor(landmarks_np, device=self.device).transpose(0, 2)
+        landmarks_tens = F.interpolate(landmarks_tens_bad_size, [time], mode='linear').transpose(0, 2)
 
-        window = np.arange(0, tens_shape[0])
-        if tens_shape[0] > self.window_size:
-            t = np.random.randint(0, tens_shape[0] - self.window_size)
+        window = np.arange(0, time)
+        if time > self.window_size:
+            t = np.random.randint(0, time - self.window_size)
             window = np.arange(t, t + self.window_size)
 
         sample = {
@@ -165,3 +168,6 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
             }
 
         return sample
+
+if __name__ == "__main__":
+    check = AudioLandmarkDataset()
