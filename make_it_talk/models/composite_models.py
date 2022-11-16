@@ -97,7 +97,7 @@ class ContentLandmarkDeltasPredictorOriginal(nn.Module):
         x = torch.transpose(x, 1, 2)
         x = self.fc[1](x) # first bn
         x = torch.transpose(x, 1, 2)
-        x = self.dc[2](x) # relu
+        x = self.fc[2](x) # relu
         x = self.fc[3](x) # second linear
         x = torch.transpose(x, 1, 2)
         x = self.fc[4](x) # second bn
