@@ -271,7 +271,7 @@ def make_talking_head_pipeline_with_params(
     self_attention_encoder = SelfAttentionEncoder(hidden_size_2, hidden_size_3, hidden_size_4)
     facial_landmarks_extractor = FacialLandmarksExtractor()
     mlp_speaker_aware = MLPSpeaker(hidden_size_4, landmarks_dim)
-    discriminator = DiscriminatorPlug(0, 0, 0)
+    discriminator = DiscriminatorPlug(256, 256, 204)
 
     generator = SpeakerAwareLandmarkDeltasPredictor(
         lstm_speaker_aware=lstm_speaker_aware,
