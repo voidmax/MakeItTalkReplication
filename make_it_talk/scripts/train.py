@@ -97,15 +97,14 @@ def train_pipeline(
         for i, batch in enumerate(train_dataloader):
             results = {}
 
-            pictures, audios, true_videos = batch
+            start_landmark = batch['start_landmark'].to(device)
+            content = batch['content'].to(device)
+            speaker = batch['speaker'].to(device)
+            true_landmarks = batch['landmarks'].to(device)
 
-            audios = audios.to(device)
-            pictures = pictures.to(device)
-            true_videos = true_videos.to(device)
+            #true_landmarks = talking_head_pipeline.facial_landmarks_extractor(true_videos)
 
-            true_landmarks = talking_head_pipeline.facial_landmarks_extractor(true_videos)
-
-            predicted_landmarks, discriminator_inputs = talking_head_pipeline(audios, pictures)
+            predicted_landmarks, discriminator_inputs = talking_head_pipeline(content, speaker, start_landmark)
 
             predicted_landmarks, personal_processed, speaker_processed = discriminator_inputs
             realism_predicted = talking_head_pipeline.discriminator(predicted_landmarks, personal_processed,
