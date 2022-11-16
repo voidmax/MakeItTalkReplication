@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
 
+import matplotlib.pyplot as plt
+import numpy as np
 from IPython.display import clear_output
 from tqdm.auto import tqdm
 
