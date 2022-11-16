@@ -153,7 +153,7 @@ class TalkingHeadPipeline(nn.Module):
         #landmarks = self.facial_landmarks_extractor(pictures)
         landmarks = pictures
 
-        content_deltas = self.content_landmarks_predictor(audio_embeddings, landmarks)
+        content_deltas = self.content_landmarks_predictor(audio_embeddings[0], landmarks)
 
         if return_discriminator_inputs:
             personal_deltas, additional_discriminator_inputs = self.personal_landmarks_predictor(audio_embeddings,
