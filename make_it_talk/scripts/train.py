@@ -89,6 +89,7 @@ def plot_losses(log):
     ax.plot(losses['discriminator_loss'])
     ax.set_title('discriminator loss')
     ax.grid()
+    plt.tight_layout()
     plt.show()
 
 
