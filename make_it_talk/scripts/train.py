@@ -124,7 +124,7 @@ def train_pipeline(
 
         training_generator_now = epoch % 2
 
-        for i, batch in enumerate(train_dataloader):
+        for i, batch in tqdm(enumerate(train_dataloader)):
             results = {}
 
             start_landmark = batch['start_landmark'].to(device)
