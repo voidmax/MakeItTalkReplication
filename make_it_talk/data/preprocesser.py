@@ -46,18 +46,19 @@ class AudioPreprocesser:
         files = list(Path(self.root_audio_dir).glob('**/*.wav'))
         print('Found ', len(list(Path(self.root_audio_dir).glob('**/*.wav'))), ' folders')
         print('Root path: ', str(Path(self.root_audio_dir)))
-        for filename in files:
-            print('filename: ', filename)
+        # for filename in files:
+        #     print('filename: ', filename)
         # files = glob.glob1(self.root_audio_dir, '*.wav')
         self.load_autovc_weights()
         self.load_obama_embs()
-        for file_name in files:
+        for filename in files:
+            file_name = str(filename)
             if file_name.endswith('tmp.wav'):
                 continue
             spk_tens = self.parse_speacker_tensor(file_name)
             cont_tens = self.parse_content_tensor(file_name)
-            print('save paths: ' + os.path.join(self.root_audio_dir, 'speacker_' + file_name[:-3] + 'pt'))
-            print('shape: ', spk_tens)
+            # print('save paths: ' + os.path.join(self.root_audio_dir, 'speacker_' + file_name[:-3] + 'pt'))
+            # print('shape: ', spk_tens)
             torch.save(spk_tens, os.path.join(self.root_audio_dir, 'speacker_' + file_name[:-3] + 'pt'))
             torch.save(cont_tens, os.path.join(self.root_audio_dir, 'content_' + file_name[:-3] + 'pt'))
 
