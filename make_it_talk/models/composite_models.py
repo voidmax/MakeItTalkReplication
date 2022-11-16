@@ -73,19 +73,14 @@ class ContentLandmarkDeltasPredictorOriginal(nn.Module):
     def forward(self, au, face_id):
 
         inputs = au
-        print(inputs.shape)
         if(self.use_prior_net):
             inputs = self.fc_prior(inputs)
             #inputs = self.fc_prior(inputs.contiguous().view(-1, self.in_size))
             #inputs = inputs.view(-1, self.num_window_frames, self.lstm_size)
-        print(inputs.shape)
         output, (hn, cn) = self.bilstm(inputs)
-        print(output.shape)
         time = au.shape[1]
         landmarks = face_id.unsqueeze(1).repeat(1, time, 1)
-        print(landmarks.shape)
         output2 = torch.cat([output, landmarks], dim=-1)
-        print(output2.shape)
         #output = output[:, -1, :]
 
         #if(face_id.shape[0] == 1):
@@ -135,16 +130,16 @@ class SpeakerAwareLandmarkDeltasPredictor(nn.Module):
     ):
 
         audio_content, speaker = audio_embeddings
-
+        print(audio_content.shape, speaker.shape)
         batch_size, n_tokens, audio_emb_dim = audio_content.shape
         speaker_dim = speaker.shape[-1]
         landmarks_dim = landmarks.shape[-1]
 
         personal_processed = self.lstm_speaker_aware(audio_content)
         speaker_processed = self.mlp_speaker_embedding(speaker)
-
+        print(speaker_processed.shape, personal_processed.shape)
         personal_and_speaker_processed = self.self_attention_encoder(speaker_processed, personal_processed)
-
+        print(personal_and_speaker_processed.shape)
         personal_landmark_deltas = self.mlp_speaker_aware(personal_and_speaker_processed, landmarks)
 
         if return_discriminator_inputs:
