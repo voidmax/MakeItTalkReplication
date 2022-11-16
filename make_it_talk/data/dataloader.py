@@ -122,8 +122,16 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
             parts = path.parts[data_path_length + 1:]
             return str(Path(*parts))[:-k]
 
-        audio_cont_names = set(trim_path(path, len('_content.pt')) for path in audio_cont_paths)
+        audio_cont_names = set()
+        for path in audio_cont_paths:
+            tmp = torch.load(path).shape[0]
+            if tmp < self.window_size:
+                continue
+            audio_cont_names.add(trim_path(path, len('_content.pt')))
+
+
         audio_spk_names = set(trim_path(path, len('_speacker.pt')) for path in audio_spk_paths)
+
         video_names = set()
         print("before filter ", len(video_paths))
         for path in video_paths:
