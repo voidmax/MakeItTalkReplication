@@ -115,7 +115,7 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
         self.window_size = window_size
         audio_cont_paths = Path(self.audio_dir).glob('**/*_content.pt')
         audio_spk_paths = Path(self.audio_dir).glob('**/*_speacker.pt')
-        video_paths = Path(self.video_dir).glob('**/*.npy')
+        video_paths = list(Path(self.video_dir).glob('**/*.npy'))
 
         data_path_length = len(Path(data_dir).parts)
         def trim_path(path, k):
@@ -125,12 +125,14 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
         audio_cont_names = set(trim_path(path, len('_content.pt')) for path in audio_cont_paths)
         audio_spk_names = set(trim_path(path, len('_speacker.pt')) for path in audio_spk_paths)
         video_names = set()
+        print("before filter ", len(video_paths))
         for path in video_paths:
             try:
                 np.load(path)
                 video_names.add(trim_path(path, len('.npy')))
             except ValueError as e:
                 continue
+        print("after filter ", len(video_names))
         
 
         self.paths = list(audio_cont_names & audio_spk_names & video_names)
@@ -165,3 +167,6 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
             }
 
         return sample
+
+if __name__ == "__main__":
+    check = AudioLandmarkDataset()
