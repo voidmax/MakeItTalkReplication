@@ -137,7 +137,7 @@ class AudioLandmarkDataset(torch.utils.data.Dataset):
         for path in video_paths:
             try:
                 tmp = np.load(path)
-                if tmp.shape[2] < 3:
+                if tmp.shape[2] != 3 or tmp.shape[1] != 68:
                     continue
                 video_names.add(trim_path(path, len('.npy')))
             except ValueError as e:
