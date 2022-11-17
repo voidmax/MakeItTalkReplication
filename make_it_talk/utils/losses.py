@@ -53,9 +53,10 @@ class LossForDiscriminator(nn.Module):
     def forward(self, realism_pred, realism_true):
         return ((realism_true - 1) ** 2).mean() + (realism_pred ** 2).mean()
 
+
 class LossForGenerator(nn.Module):
     def __init__(self, lambda_classes, mu_discriminator):
-        #super(LossForGenerator, self).__init__()
+        # super(LossForGenerator, self).__init__()
         super().__init__()
         self.lambda_classes = lambda_classes
         self.mu_discriminator = mu_discriminator
@@ -71,7 +72,6 @@ class LossForGenerator(nn.Module):
             true_landmarks = true_landmarks.reshape(batch_size, time, 68, 3)
 
         mse_total = F.mse_loss(predicted_landmarks, true_landmarks)
-
         mse_classes = []
         n_classes = len(landmark_classes)
 
@@ -86,6 +86,9 @@ class LossForGenerator(nn.Module):
 
             preds -= preds.sum(dim=2, keepdim=True) / class_len
             true -= true.sum(dim=2, keepdim=True) / class_len
+
+            preds *= class_mask
+            true *= class_mask
 
             mse_classes.append(F.mse_loss(preds, true, reduction='sum') / class_mask.sum().item())
 
