@@ -6,7 +6,7 @@ from .constants import landmark_classes
 
 class LossForContentPredictedLandmarks(nn.Module):
     def __init__(self, lambda_classes = 1):
-        super(LossForContentPredictedLandmarks, self).__init__()
+        super().__init__()
         self.lambda_classes = lambda_classes
 
     def forward(self, predicted_landmarks, true_landmarks):
@@ -48,7 +48,7 @@ class LossForContentPredictedLandmarks(nn.Module):
 
 class LossForDiscriminator(nn.Module):
     def __init__(self):
-        super(LossForDiscriminator, self).__init__()
+        super().__init__()
 
     def forward(self, realism_pred, realism_true):
         return ((realism_true - 1) ** 2).mean() + (realism_pred ** 2).mean()
