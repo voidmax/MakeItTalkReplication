@@ -61,20 +61,16 @@ class LossForGenerator(nn.Module):
         self.mu_discriminator = mu_discriminator
 
     def forward(self, predicted_landmarks, predicted_realism, true_landmarks):
-        print(predicted_landmarks.shape)
         realism_loss = ((predicted_realism - 1) ** 2).mean()
 
         batch_size = predicted_landmarks.shape[0]
         time = predicted_landmarks.shape[1]
         if len(predicted_landmarks.shape) == 3:
             predicted_landmarks = predicted_landmarks.reshape(batch_size, time, 68, 3)
-        print(predicted_landmarks.shape)
         if len(true_landmarks.shape) == 3:
             true_landmarks = true_landmarks.reshape(batch_size, time, 68, 3)
 
-        print(predicted_landmarks.shape, true_landmarks.shape)
         mse_total = F.mse_loss(predicted_landmarks, true_landmarks)
-        print(mse_total)
 
         mse_classes = []
         n_classes = len(landmark_classes)
@@ -89,12 +85,11 @@ class LossForGenerator(nn.Module):
             true = true_landmarks * class_mask
 
             preds -= preds.sum(dim=2, keepdim=True) / class_len
-            true -= preds.sum(dim=2, keepdim=True) / class_len
+            true -= true.sum(dim=2, keepdim=True) / class_len
 
             mse_classes.append(F.mse_loss(preds, true, reduction='sum') / class_mask.sum().item())
 
         mse_classes_mean = torch.mean(torch.stack(mse_classes, dim=0))
         print(mse_classes_mean)
-        print(realism_loss)
 
         return mse_total + self.lambda_classes * mse_classes_mean + self.mu_discriminator * realism_loss
