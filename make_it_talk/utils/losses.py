@@ -55,7 +55,8 @@ class LossForDiscriminator(nn.Module):
 
 class LossForGenerator(nn.Module):
     def __init__(self, lambda_classes, mu_discriminator):
-        super(LossForGenerator, self).__init__()
+        #super(LossForGenerator, self).__init__()
+        super().__init__()
         self.lambda_classes = lambda_classes
         self.mu_discriminator = mu_discriminator
 
