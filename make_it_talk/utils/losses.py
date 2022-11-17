@@ -69,6 +69,7 @@ class LossForGenerator(nn.Module):
         if len(true_landmarks.shape) == 3:
             true_landmarks = true_landmarks.reshape(batch_size, time, 68, 3)
 
+        print(predicted_landmarks.shape, true_landmarks.shape)
         mse_total = F.mse_loss(predicted_landmarks, true_landmarks)
         print(mse_total)
 
