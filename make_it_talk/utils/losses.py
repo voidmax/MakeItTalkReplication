@@ -61,12 +61,14 @@ class LossForGenerator(nn.Module):
         self.mu_discriminator = mu_discriminator
 
     def forward(self, predicted_landmarks, predicted_realism, true_landmarks):
+        print(predicted_landmarks.shape)
         realism_loss = ((predicted_realism - 1) ** 2).mean()
 
         batch_size = predicted_landmarks.shape[0]
         time = predicted_landmarks.shape[1]
         if len(predicted_landmarks.shape) == 3:
             predicted_landmarks = predicted_landmarks.reshape(batch_size, time, 68, 3)
+        print(predicted_landmarks.shape)
         if len(true_landmarks.shape) == 3:
             true_landmarks = true_landmarks.reshape(batch_size, time, 68, 3)
 
