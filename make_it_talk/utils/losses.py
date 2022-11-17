@@ -90,6 +90,5 @@ class LossForGenerator(nn.Module):
             mse_classes.append(F.mse_loss(preds, true, reduction='sum') / class_mask.sum().item())
 
         mse_classes_mean = torch.mean(torch.stack(mse_classes, dim=0))
-        print(mse_classes_mean)
 
         return mse_total + self.lambda_classes * mse_classes_mean + self.mu_discriminator * realism_loss
