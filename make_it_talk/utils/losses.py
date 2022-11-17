@@ -69,7 +69,8 @@ class LossForGenerator(nn.Module):
         if len(true_landmarks.shape) == 3:
             true_landmarks = true_landmarks.reshape(batch_size, time, 68, 3)
 
-        mse_total = mse_total = F.mse_loss(predicted_landmarks, true_landmarks)
+        mse_total = F.mse_loss(predicted_landmarks, true_landmarks)
+        print(mse_total)
 
         mse_classes = []
         n_classes = len(landmark_classes)
@@ -89,5 +90,7 @@ class LossForGenerator(nn.Module):
             mse_classes.append(F.mse_loss(preds, true, reduction='sum') / class_mask.sum().item())
 
         mse_classes_mean = torch.mean(torch.stack(mse_classes, dim=0))
+        print(mse_classes_mean)
+        print(realism_loss)
 
         return mse_total + self.lambda_classes * mse_classes_mean + self.mu_discriminator * realism_loss
